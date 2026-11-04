@@ -1,0 +1,119 @@
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>لعبة الأعلام</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%;margin:0;background:#1b1410;color:#fff;font-family:system-ui,"Segoe UI",Tahoma,sans-serif;overflow:hidden}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+#top{position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);left:8px;right:8px;text-align:center;pointer-events:none}
+#info{font-size:14px;opacity:.9;margin-bottom:6px}
+#sc{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.chip{padding:3px 10px;border-radius:14px;font-size:13px;background:#0008;border:2px solid transparent}
+.chip.me{border-color:#fff}
+#bot{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);left:10px;right:10px;max-width:520px;margin:auto}
+#turn{text-align:center;font-weight:700;margin-bottom:8px;text-shadow:0 1px 4px #000}
+#opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+button{font:inherit;font-size:16px;min-height:50px;border:0;border-radius:12px;background:#f3e3c7;color:#2a1a0c;cursor:pointer;padding:6px 14px}
+button:disabled{opacity:.6}button.ok{background:#3cb371;color:#fff;opacity:1}button.no{background:#d9534f;color:#fff}button.sel{outline:3px solid #ffb703;opacity:1}
+#nx{grid-column:1/3;background:#ffb703}
+#ov{position:fixed;inset:0;background:#1b1410f2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:20px}
+#ov h1{margin:0;font-size:28px}#ov .r{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+#ov input{font:inherit;font-size:18px;padding:12px;border-radius:12px;border:0;text-align:center;width:min(280px,80vw)}
+.code{font-size:44px;letter-spacing:8px;font-weight:800;color:#ffb703;direction:ltr}
+</style></head><body>
+<div id="top"><div id="info"></div><div id="sc"></div></div>
+<div id="bot"><div id="turn"></div><div id="opts"></div></div>
+<div id="ov"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const D="US:أمريكا,GB:بريطانيا,FR:فرنسا,DE:ألمانيا,IT:إيطاليا,ES:إسبانيا,BR:البرازيل,AR:الأرجنتين,MX:المكسيك,CA:كندا,JP:اليابان,CN:الصين,IN:الهند,RU:روسيا,EG:مصر,SA:السعودية,TR:تركيا,AU:أستراليا,PT:البرتغال,NL:هولندا,IQ:العراق,AE:الإمارات,KW:الكويت,QA:قطر,BH:البحرين,OM:عُمان,JO:الأردن,LB:لبنان,SY:سوريا,PS:فلسطين,YE:اليمن,LY:ليبيا,TN:تونس,DZ:الجزائر,MA:المغرب,SD:السودان,KR:كوريا الجنوبية,ID:إندونيسيا,PK:باكستان,IR:إيران,GR:اليونان,CH:سويسرا,SE:السويد,NO:النرويج,DK:الدنمارك,FI:فنلندا,BE:بلجيكا,AT:النمسا,PL:بولندا,UA:أوكرانيا,CL:تشيلي,CO:كولومبيا,PE:بيرو,VE:فنزويلا,UY:الأوروغواي,EC:الإكوادور,CU:كوبا,ZA:جنوب أفريقيا,NG:نيجيريا,KE:كينيا,ET:إثيوبيا,GH:غانا,SN:السنغال,TH:تايلاند,VN:فيتنام,MY:ماليزيا,SG:سنغافورة,PH:الفلبين,NZ:نيوزيلندا,IE:أيرلندا,CZ:التشيك,HU:المجر,RO:رومانيا,BG:بلغاريا,RS:صربيا,HR:كرواتيا,IL:إسرائيل,AF:أفغانستان,BD:بنغلاديش,KZ:كازاخستان,IS:آيسلندا,SK:سلوفاكيا,SI:سلوفينيا,BA:البوسنة والهرسك,AL:ألبانيا,MK:مقدونيا الشمالية,ME:الجبل الأسود,BY:بيلاروسيا,LT:ليتوانيا,LV:لاتفيا,EE:إستونيا,MD:مولدوفا,GE:جورجيا,AM:أرمينيا,AZ:أذربيجان,UZ:أوزبكستان,TM:تركمانستان,KG:قرغيزستان,TJ:طاجيكستان,MN:منغوليا,KP:كوريا الشمالية,NP:نيبال,LK:سريلانكا,MM:ميانمار,KH:كمبوديا,LA:لاوس,SO:الصومال,DJ:جيبوتي,ER:إريتريا,MR:موريتانيا,ML:مالي,NE:النيجر,TD:تشاد,CM:الكاميرون,CD:الكونغو الديمقراطية,CG:الكونغو,AO:أنغولا,TZ:تنزانيا,UG:أوغندا,ZW:زيمبابوي,ZM:زامبيا,MZ:موزمبيق,MG:مدغشقر,BO:بوليفيا,PY:باراغواي,CR:كوستاريكا,PA:بنما,DO:الدومينيكان,JM:جامايكا,HT:هايتي,GT:غواتيمالا,HN:هندوراس,SV:السلفادور,NI:نيكاراغوا,BS:الباهاما,MT:مالطا,CY:قبرص,LU:لوكسمبورغ,LI:ليختنشتاين,MC:موناكو,SM:سان مارينو,VA:الفاتيكان,AD:أندورا,BN:بروناي,BT:بوتان,MV:المالديف,TL:تيمور الشرقية,PG:بابوا غينيا الجديدة,FJ:فيجي,WS:ساموا,TO:تونغا,VU:فانواتو,SB:جزر سليمان,KI:كيريباتي,TV:توفالو,NR:ناورو,MH:جزر مارشال,FM:ميكرونيزيا,PW:بالاو,CV:الرأس الأخضر,ST:ساو تومي وبرينسيبي,GW:غينيا بيساو,GN:غينيا,SL:سيراليون,LR:ليبيريا,CI:ساحل العاج,BF:بوركينا فاسو,TG:توغو,BJ:بنين,GA:الغابون,GQ:غينيا الاستوائية,CF:أفريقيا الوسطى,SS:جنوب السودان,RW:رواندا,BI:بوروندي,MW:مالاوي,LS:ليسوتو,SZ:إسواتيني,BW:بوتسوانا,NA:ناميبيا,KM:جزر القمر,SC:سيشل,MU:موريشيوس,GM:غامبيا,BB:بربادوس,TT:ترينيداد وتوباغو,GY:غيانا,SR:سورينام,BZ:بليز,AG:أنتيغوا وبربودا,DM:دومينيكا,LC:سانت لوسيا,VC:سانت فنسنت,GD:غرينادا,KN:سانت كيتس ونيفيس";
+const C=D.split(",").map(s=>{const[a,b]=s.split(":");return{c:a,n:b,f:String.fromCodePoint(...[...a].map(x=>127397+x.charCodeAt()))}});
+const B=[0,20,50,80,143,195],L=["سهل جداً","سهل","متوسط","صعب","صعب جداً"];
+const $=id=>document.getElementById(id),E=s=>{const d=document.createElement("div");d.textContent=s;return d.innerHTML};
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function sh(a,r){for(let i=a.length-1;i>0;i--){const j=r()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a}
+let Q=[];function mkQ(s){const r=rng(s);Q=[];for(let i=0;i<5;i++)Q.push(...sh(C.slice(B[i],B[i+1]),r))}
+function opts(qi,s){const r=rng(s+qi*7919+1),c=Q[qi];return sh([c,...sh(C.filter(x=>x!==c),r).slice(0,3)],r)}
+// ---- 3D
+const R=new THREE.WebGLRenderer({antialias:true});R.setPixelRatio(Math.min(devicePixelRatio,2));document.body.prepend(R.domElement);
+const S=new THREE.Scene();S.background=new THREE.Color(0x1b1410);
+const cam=new THREE.PerspectiveCamera(55,1,.1,100);
+S.add(new THREE.AmbientLight(0xffffff,.75));const dl=new THREE.DirectionalLight(0xffffff,.8);dl.position.set(5,12,6);S.add(dl);
+const M=c=>new THREE.MeshLambertMaterial({color:c});
+const add=(g,m,x,y,z,p)=>{const o=new THREE.Mesh(g,m);o.position.set(x,y,z);(p||S).add(o);return o};
+const fl=add(new THREE.CircleGeometry(16,48),M(0x3a2a20),0,0,0);fl.rotation.x=-Math.PI/2;
+add(new THREE.CylinderGeometry(3.2,3.2,.25,48),M(0x8b5a2b),0,1.4,0);
+add(new THREE.CylinderGeometry(.5,.8,1.3,16),M(0x5a3a1b),0,.7,0);
+const cv=document.createElement("canvas");cv.width=512;cv.height=340;const cx=cv.getContext("2d"),tex=new THREE.CanvasTexture(cv);
+const board=new THREE.Group();board.position.y=4;S.add(board);
+add(new THREE.BoxGeometry(3.7,2.5,.12),M(0xffd166),0,0,0,board);
+add(new THREE.PlaneGeometry(3.4,2.26),new THREE.MeshBasicMaterial({map:tex}),0,0,.07,board);
+let seats=[],yaw=0,drag=null,bk="",bn=0;
+function flag(f){cx.fillStyle="#fff";cx.fillRect(0,0,512,340);cx.font="230px 'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif";cx.textAlign="center";cx.textBaseline="middle";cx.fillStyle="#000";cx.fillText(f,256,180);tex.needsUpdate=true}
+function label(t,col){const c=document.createElement("canvas");c.width=320;c.height=80;const x=c.getContext("2d");x.fillStyle="rgba(0,0,0,.65)";x.fillRect(0,0,320,80);x.fillStyle=col;x.fillRect(0,70,320,10);x.fillStyle="#fff";x.font="bold 38px system-ui,Tahoma,sans-serif";x.textAlign="center";x.textBaseline="middle";x.fillText(t,160,36);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c)}));s.scale.set(2.4,.6,1);return s}
+function build(pl,ok,meI){const n=pl.length,k=pl.map((p,i)=>p.presence.name+ok[i]).join("|");if(k===bk)return;bk=k;
+seats.forEach(g=>S.remove(g));seats=[];
+pl.forEach((p,i)=>{const a=i/n*Math.PI*2,col="hsl("+i*60+",70%,55%)",g=new THREE.Group();
+g.position.set(Math.sin(a)*4.8,0,Math.cos(a)*4.8);g.rotation.y=a+Math.PI;S.add(g);seats.push(g);
+add(new THREE.BoxGeometry(1.2,.15,1.2),M(0x6b4423),0,.9,0,g);add(new THREE.BoxGeometry(1.2,1.2,.15),M(0x6b4423),0,1.5,-.6,g);
+[[-.5,-.5],[.5,-.5],[-.5,.5],[.5,.5]].forEach(q=>add(new THREE.BoxGeometry(.12,.9,.12),M(0x4a2f15),q[0],.45,q[1],g));
+add(new THREE.CylinderGeometry(.4,.5,1,16),M(new THREE.Color(col)),0,1.55,-.1,g);add(new THREE.SphereGeometry(.36,20,16),M(0xf1c9a5),0,2.3,-.1,g);
+const lb=label((ok[i]?"✓ ":"")+p.presence.name,col);lb.position.set(0,3.1,-.1);g.add(lb)});
+if(n!==bn){bn=n;yaw=meI/n*Math.PI*2}}
+function rs(){R.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix()}
+addEventListener("resize",rs);rs();
+R.domElement.onpointerdown=e=>{drag=e.clientX};addEventListener("pointerup",()=>drag=null);
+addEventListener("pointermove",e=>{if(drag!==null){yaw-=(e.clientX-drag)*.008;drag=e.clientX}});
+let t=0;(function loop(){requestAnimationFrame(loop);t+=.02;
+const d=innerWidth<innerHeight?13:10;cam.position.set(Math.sin(yaw)*d,7.5,Math.cos(yaw)*d);cam.lookAt(0,2.6,0);
+board.rotation.y=yaw;board.position.y=4+Math.sin(t)*.1;R.render(S,cam)})();
+// ---- multiplayer
+let room,name="",hadHost=false,lastKey="",scored=-1,cur=null,isHost=false,code="",seed=0,adv=false;
+const ov=h=>{$("ov").style.display="flex";$("ov").innerHTML=h};
+const nm=()=>{name=($("nm").value||"").trim().slice(0,12);if(!name){$("nm").focus();return false}return true};
+function home(){if(room){room.leave();room=null}$("top").style.display=$("bot").style.display="none";Q=[];bk="";lastKey="";scored=-1;hadHost=false;adv=false;
+ov(`<h1>🌍 لعبة الأعلام</h1><div>195 علم من الأسهل للأصعب، العب مع أصحابك</div><input id="nm" placeholder="اكتب اسمك" maxlength="12" value="${E(name)}"><div class="r"><button onclick="if(nm())pickN()">إنشاء غرفة</button><button onclick="if(nm())joinUI()">دخول غرفة</button></div>`)}
+function pickN(){ov(`<h1>كم لاعب تريد؟</h1><div class="r">${[2,3,4,5,6].map(k=>`<button style="width:56px" onclick="enter('',${k})">${k}</button>`).join("")}</div><button onclick="home()">رجوع</button>`)}
+function joinUI(){ov(`<h1>دخول غرفة</h1><input id="cd" placeholder="كود الغرفة" maxlength="4" style="text-transform:uppercase;direction:ltr"><div class="r"><button onclick="enter($('cd').value.trim().toLowerCase(),0)">دخول</button><button onclick="home()">رجوع</button></div>`)}
+function err(m){ov(`<h1>${m}</h1><button onclick="home()">رجوع</button>`)}
+async function enter(c,max){
+const r0=await claude.use("room");if(!r0)return err("اللعب الجماعي يحتاج فتح الصفحة وأنت مسجل دخول بحسابك على Claude");
+isHost=!c;if(isHost){const al="abcdefghjkmnpqrstuvwxyz23456789";c="";for(let i=0;i<4;i++)c+=al[Math.random()*al.length|0]}
+else if(!/^[a-z0-9]{4}$/.test(c))return err("الكود غير صحيح");
+code=c;seed=Math.random()*1e9|0;
+try{room=await r0.join("fg-"+code)}catch(e){return err("ما قدرت أدخل الغرفة")}
+await room.presence(isHost?{name,host:1,max,state:"lobby",qi:0,seed,s:0,a:-1}:{name,s:0,a:-1,qi:-1});
+room.onPeers(sync);
+if(!isHost)setTimeout(()=>{if(!hadHost){err("ما لقيت هالغرفة");}},4000)}
+function sync(){if(!room)return;
+const ps=room.peers().filter(p=>p.presence.name),h=ps.find(p=>p.presence.host);
+if(!h){if(hadHost){hadHost=false;err("المضيف غادر الغرفة")}return}
+const hp=h.presence,st=hp.state,qi=hp.qi,max=hp.max;
+const pl=[h,...ps.filter(p=>p!==h).sort((a,b)=>a.peer<b.peer?-1:1)],mi=pl.findIndex(p=>p.sameTab);
+if(!hadHost){hadHost=true;if(!isHost&&(st!=="lobby"||pl.length>max)){const m=st!=="lobby"?"اللعبة بدأت":"الغرفة ممتلئة";return err(m)}}
+if(mi<0)return;const me=pl[mi];
+if(!Q.length)mkQ(hp.seed);seed=hp.seed;
+const ans=pl.map(p=>st==="ask"&&p.presence.qi===qi&&p.presence.a>=0?1:0);
+build(pl,ans,mi);
+$("sc").innerHTML=pl.map((p,i)=>`<span class="chip ${i===mi?"me":""}" style="background:hsl(${i*60},60%,35%)">${E(p.presence.name)}: ${p.presence.s||0}${ans[i]?" ✓":""}</span>`).join("");
+if(st==="lobby"){$("top").style.display="block";$("bot").style.display="none";
+ov(`<h1>غرفتك جاهزة</h1><div>شارك هالكود مع أصحابك</div><div class="code">${code.toUpperCase()}</div><div>اللاعبين ${pl.length} / ${max}</div><div style="line-height:1.9">${pl.map(p=>E(p.presence.name)).join("<br>")}</div>`+(isHost?`<button onclick="room.presence({state:'ask',qi:0})">ابدأ اللعبة</button>`:`<div>بانتظار المضيف ليبدأ…</div>`)+`<button onclick="home()" style="background:#8884;color:#fff">خروج</button>`);return}
+if(st==="end"){const r=[...pl].sort((a,b)=>(b.presence.s||0)-(a.presence.s||0));
+ov(`<h1>🏆 النتيجة النهائية</h1>`+r.map((p,k)=>`<div style="font-size:21px">${["🥇","🥈","🥉"][k]||""} ${E(p.presence.name)}: ${p.presence.s||0} / 195</div>`).join("")+`<button onclick="home()">لعبة جديدة</button>`);return}
+$("ov").style.display="none";$("top").style.display="block";$("bot").style.display="block";
+const q=Q[qi],key=st+qi;
+if(st==="ask"){
+if(key!==lastKey){lastKey=key;cur=opts(qi,seed);flag(q.f);room.presence({qi,a:-1});
+const lv=B.findIndex((b,i)=>qi>=b&&qi<B[i+1]);$("info").textContent=`السؤال ${qi+1} / 195 · المستوى: ${L[lv]}`}
+const my=me.presence.qi===qi?me.presence.a:-1;
+$("turn").textContent=my<0?"اختر الدولة":"تم اختيارك، بانتظار الباقين…";
+$("opts").innerHTML=cur.map((x,i)=>`<button class="${i===my?"sel":""}" ${my>=0?"disabled":""} onclick="pick(${i},${qi})">${E(x.n)}</button>`).join("");
+if(isHost&&!adv&&pl.every(p=>p.presence.qi===qi&&p.presence.a>=0)){adv=true;room.presence({state:"show"})}}
+if(st==="show"){adv=false;
+if(key!==lastKey){lastKey=key;const w=pl.filter(p=>p.presence.qi===qi&&cur[p.presence.a]===q).map(p=>p.presence.name);
+$("turn").textContent=w.length?"أجاب صح: "+w.join("، "):"ما أحد أجاب صح 😅";
+if(me.presence.qi===qi&&cur[me.presence.a]===q&&scored!==qi){scored=qi;room.presence({s:(me.presence.s||0)+1})}
+$("opts").innerHTML=cur.map(x=>`<button class="${x===q?"ok":"no"}" disabled style="${x===q?"":"opacity:.5"}">${E(x.n)}</button>`).join("")+(isHost?`<button id="nx" onclick="nextQ(${qi})">${qi>=194?"النتيجة":"التالي ◀"}</button>`:`<div style="grid-column:1/3;text-align:center;opacity:.8">بانتظار المضيف…</div>`)}}}
+function pick(i,qi){room.presence({qi,a:i})}
+function nextQ(qi){room.presence(qi>=194?{state:"end"}:{state:"ask",qi:qi+1})}
+home();
+</script></body></html>
